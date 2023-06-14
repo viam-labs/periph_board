@@ -1,5 +1,4 @@
-// Package fake implements a fake Sensor.
-package fake
+package fake_sensor
 
 import (
 	"context"
@@ -11,10 +10,12 @@ import (
 	"go.viam.com/rdk/resource"
 )
 
+const ModelName = "fake"
+
 func init() {
 	resource.RegisterComponent(
 		sensor.API,
-		resource.DefaultModelFamily.WithModel("fake"),
+		resource.DefaultModelFamily.WithModel(ModelName),
 		resource.Registration[sensor.Sensor, resource.NoNativeConfig]{Constructor: func(
 			ctx context.Context,
 			deps resource.Dependencies,
