@@ -28,7 +28,7 @@ import (
 )
 
 // RegisterBoard registers a sysfs based board of the given model.
-func RegisterBoard(modelName string, gpioMappings map[int]GPIOBoardMapping, usePeriphGpio bool) {
+func RegisterBoard(modelName string, gpioMappings map[int]GPIOBoardMapping) {
 	resource.RegisterComponent(
 		board.API,
 		resource.DefaultModelFamily.WithModel(modelName),
@@ -39,7 +39,7 @@ func RegisterBoard(modelName string, gpioMappings map[int]GPIOBoardMapping, useP
 				conf resource.Config,
 				logger golog.Logger,
 			) (board.Board, error) {
-				return newBoard(ctx, conf, gpioMappings, usePeriphGpio, logger)
+				return newBoard(ctx, conf, gpioMappings, logger)
 			},
 		})
 }
@@ -48,13 +48,12 @@ func newBoard(
 	ctx context.Context,
 	conf resource.Config,
 	gpioMappings map[int]GPIOBoardMapping,
-	usePeriphGpio bool,
 	logger golog.Logger,
 ) (board.Board, error) {
 	cancelCtx, cancelFunc := context.WithCancel(context.Background())
 	b := sysfsBoard{
 		Named:         conf.ResourceName().AsNamed(),
-		usePeriphGpio: usePeriphGpio,
+		usePeriphGpio: true,
 		gpioMappings:  gpioMappings,
 		logger:        logger,
 		cancelCtx:     cancelCtx,
