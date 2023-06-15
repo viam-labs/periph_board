@@ -53,7 +53,6 @@ func newBoard(
 	cancelCtx, cancelFunc := context.WithCancel(context.Background())
 	b := sysfsBoard{
 		Named:         conf.ResourceName().AsNamed(),
-		usePeriphGpio: true,
 		gpioMappings:  gpioMappings,
 		logger:        logger,
 		cancelCtx:     cancelCtx,
@@ -236,87 +235,9 @@ func findNewDigIntConfig(
 }
 
 func (b *sysfsBoard) reconfigureInterrupts(newConf *Config) error {
-	if b.usePeriphGpio {
-		if len(newConf.DigitalInterrupts) != 0 {
-			return errors.New("digital interrupts on Periph GPIO pins are not yet supported")
-		}
-		return nil // No digital interrupts to reconfigure.
+	if len(newConf.DigitalInterrupts) != 0 {
+		return errors.New("digital interrupts on Periph GPIO pins are not supported")
 	}
-
-	// If we get here, we need to reconfigure b.interrupts. Any pin that already exists in the
-	// right configuration should just be copied over; closing and re-opening it risks losing its
-	// state.
-	newInterrupts := make(map[string]*digitalInterrupt, len(newConf.DigitalInterrupts))
-
-	// Reuse any old interrupts that have new configs
-	for _, oldInterrupt := range b.interrupts {
-		if newConfig := findNewDigIntConfig(oldInterrupt, newConf, b.logger); newConfig == nil {
-			// The old interrupt shouldn't exist any more, but it probably became a GPIO pin.
-			if err := oldInterrupt.Close(); err != nil {
-				return err // This should never happen, but the linter worries anyway.
-			}
-			if pinInt, err := strconv.Atoi(oldInterrupt.config.Pin); err == nil {
-				if newGpioConfig, ok := b.gpioMappings[pinInt]; ok {
-					// See gpio.go for createGpioPin.
-					b.gpios[oldInterrupt.config.Pin] = b.createGpioPin(newGpioConfig)
-				}
-			} else {
-				b.logger.Warnf("Unable to reinterpret old interrupt pin '%s' as GPIO, ignoring.",
-					oldInterrupt.config.Pin)
-			}
-		} else { // The old interrupt should stick around.
-			if err := oldInterrupt.interrupt.Reconfigure(*newConfig); err != nil {
-				return err
-			}
-			oldInterrupt.config = newConfig
-			newInterrupts[newConfig.Name] = oldInterrupt
-		}
-	}
-	oldInterrupts := b.interrupts
-	b.interrupts = newInterrupts
-
-	// Add any new interrupts that should be freshly made.
-	for _, config := range newConf.DigitalInterrupts {
-		if interrupt, ok := b.interrupts[config.Name]; ok {
-			if interrupt.config.Pin == config.Pin {
-				continue // Already initialized; keep going
-			}
-			// If the interrupt's name matches but the pin does not, the interrupt we already have
-			// was implicitly created (e.g., its name is "38" so we created it on pin 38 even
-			// though it was not explicitly mentioned in the old board config), but the new config
-			// is explicit (e.g., its name is still "38" but it's been moved to pin 37). Close the
-			// old one and initialize it anew.
-			if err := interrupt.Close(); err != nil {
-				return err
-			}
-			// Although we delete the implicit interrupt from b.interrupts, it's still in
-			// oldInterrupts, so we haven't lost the channels it reports to and can still copy them
-			// over to the new struct.
-			delete(b.interrupts, config.Name)
-		}
-
-		if oldPin, ok := b.gpios[config.Pin]; ok {
-			if err := oldPin.Close(); err != nil {
-				return err
-			}
-			delete(b.gpios, config.Pin)
-		}
-
-		// If there was an old interrupt pin with this same name, reuse the part that holds its
-		// callbacks. Anything subscribed to the old pin will expect to still be subscribed to the
-		// new one.
-		var oldCallbackHolder board.ReconfigurableDigitalInterrupt
-		if oldInterrupt, ok := oldInterrupts[config.Name]; ok {
-			oldCallbackHolder = oldInterrupt.interrupt
-		}
-		interrupt, err := b.createDigitalInterrupt(
-			b.cancelCtx, config, b.gpioMappings, oldCallbackHolder)
-		if err != nil {
-			return err
-		}
-		b.interrupts[config.Name] = interrupt
-	}
-
 	return nil
 }
 
@@ -365,7 +286,6 @@ type sysfsBoard struct {
 	i2cs         map[string]*i2cBus
 	logger       golog.Logger
 
-	usePeriphGpio bool
 	// These next two are only used for non-periph.io pins
 	gpios      map[string]*gpioPin
 	interrupts map[string]*digitalInterrupt
@@ -396,45 +316,7 @@ func (b *sysfsBoard) AnalogReaderByName(name string) (board.AnalogReader, bool) 
 }
 
 func (b *sysfsBoard) DigitalInterruptByName(name string) (board.DigitalInterrupt, bool) {
-	if b.usePeriphGpio {
-		return nil, false // Digital interrupts aren't supported.
-	}
-
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	interrupt, ok := b.interrupts[name]
-	if ok {
-		return interrupt.interrupt, true
-	}
-
-	// Otherwise, the name is not something we recognize yet. If it appears to be a GPIO pin, we'll
-	// remove its GPIO capabilities and turn it into a digital interrupt.
-	gpio, ok := b.gpios[name]
-	if !ok {
-		return nil, false
-	}
-	if err := gpio.Close(); err != nil {
-		b.logger.Errorw("failed to close GPIO pin to use as interrupt", "error", err)
-		return nil, false
-	}
-
-	const defaultInterruptType = "basic"
-	defaultInterruptConfig := board.DigitalInterruptConfig{
-		Name: name,
-		Pin:  name,
-		Type: defaultInterruptType,
-	}
-	interrupt, err := b.createDigitalInterrupt(
-		b.cancelCtx, defaultInterruptConfig, b.gpioMappings, nil)
-	if err != nil {
-		b.logger.Errorw("failed to create digital interrupt pin on the fly", "error", err)
-		return nil, false
-	}
-
-	delete(b.gpios, name)
-	b.interrupts[name] = interrupt
-	return interrupt.interrupt, true
+	return nil, false // Digital interrupts aren't supported.
 }
 
 func (b *sysfsBoard) SPINames() []string {
@@ -515,20 +397,7 @@ func (b *sysfsBoard) getGPIOLine(hwPin string) (gpio.PinIO, bool, error) {
 }
 
 func (b *sysfsBoard) GPIOPinByName(pinName string) (board.GPIOPin, error) {
-	if b.usePeriphGpio {
-		return b.periphGPIOPinByName(pinName)
-	}
-	// Otherwise, the pins are stored in b.gpios.
-	if pin, ok := b.gpios[pinName]; ok {
-		return pin, nil
-	}
-
-	// check if pin is a digital interrupt
-	if interrupt, interruptOk := b.interrupts[pinName]; interruptOk {
-		return &gpioInterruptWrapperPin{*interrupt}, nil
-	}
-
-	return nil, errors.Errorf("cannot find GPIO for unknown pin: %s", pinName)
+	return b.periphGPIOPinByName(pinName)
 }
 
 func (b *sysfsBoard) periphGPIOPinByName(pinName string) (board.GPIOPin, error) {
@@ -600,18 +469,5 @@ func (b *sysfsBoard) Close(ctx context.Context) error {
 	b.cancelFunc()
 	b.mu.Unlock()
 	b.activeBackgroundWorkers.Wait()
-
-	// For non-Periph boards, shut down all our open pins so we don't leak file descriptors
-	if b.usePeriphGpio {
-		return nil
-	}
-
-	var err error
-	for _, pin := range b.gpios {
-		err = multierr.Combine(err, pin.Close())
-	}
-	for _, interrupt := range b.interrupts {
-		err = multierr.Combine(err, interrupt.Close())
-	}
-	return err
+	return nil
 }
