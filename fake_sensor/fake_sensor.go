@@ -10,7 +10,7 @@ import (
 	"go.viam.com/rdk/resource"
 )
 
-const ModelName = "fake"
+const ModelName = "fake_module"
 
 func init() {
 	resource.RegisterComponent(
