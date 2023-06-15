@@ -61,8 +61,6 @@ func newBoard(
 		// this is not yet modified during reconfiguration but maybe should be
 		pwms:       map[string]pwmSetting{},
 		i2cs:       map[string]*i2cBus{},
-		gpios:      map[string]*gpioPin{},
-		interrupts: map[string]*digitalInterrupt{},
 	}
 
 	if err := b.Reconfigure(ctx, nil, conf); err != nil {
@@ -249,10 +247,6 @@ type sysfsBoard struct {
 	i2cs         map[string]*i2cBus
 	logger       golog.Logger
 
-	// These next two are only used for non-periph.io pins
-	gpios      map[string]*gpioPin
-	interrupts map[string]*digitalInterrupt
-
 	cancelCtx               context.Context
 	cancelFunc              func()
 	activeBackgroundWorkers sync.WaitGroup
@@ -313,15 +307,7 @@ func (b *sysfsBoard) AnalogReaderNames() []string {
 }
 
 func (b *sysfsBoard) DigitalInterruptNames() []string {
-	if b.interrupts == nil {
-		return nil
-	}
-
-	names := []string{}
-	for name := range b.interrupts {
-		names = append(names, name)
-	}
-	return names
+	return nil
 }
 
 func (b *sysfsBoard) GPIOPinNames() []string {
