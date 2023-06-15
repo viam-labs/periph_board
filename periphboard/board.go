@@ -28,7 +28,7 @@ import (
 )
 
 // RegisterBoard registers a sysfs based board of the given model.
-func RegisterBoard(modelName string, gpioMappings map[int]GPIOBoardMapping) {
+func RegisterBoard(modelName string) {
 	resource.RegisterComponent(
 		board.API,
 		resource.DefaultModelFamily.WithModel(modelName),
@@ -39,7 +39,7 @@ func RegisterBoard(modelName string, gpioMappings map[int]GPIOBoardMapping) {
 				conf resource.Config,
 				logger golog.Logger,
 			) (board.Board, error) {
-				return newBoard(ctx, conf, gpioMappings, logger)
+				return newBoard(ctx, conf, logger)
 			},
 		})
 }
@@ -47,13 +47,11 @@ func RegisterBoard(modelName string, gpioMappings map[int]GPIOBoardMapping) {
 func newBoard(
 	ctx context.Context,
 	conf resource.Config,
-	gpioMappings map[int]GPIOBoardMapping,
 	logger golog.Logger,
 ) (board.Board, error) {
 	cancelCtx, cancelFunc := context.WithCancel(context.Background())
 	b := sysfsBoard{
 		Named:         conf.ResourceName().AsNamed(),
-		gpioMappings:  gpioMappings,
 		logger:        logger,
 		cancelCtx:     cancelCtx,
 		cancelFunc:    cancelFunc,
@@ -65,10 +63,6 @@ func newBoard(
 		i2cs:       map[string]*i2cBus{},
 		gpios:      map[string]*gpioPin{},
 		interrupts: map[string]*digitalInterrupt{},
-	}
-
-	for pinNumber, mapping := range gpioMappings {
-		b.gpios[fmt.Sprintf("%d", pinNumber)] = b.createGpioPin(mapping)
 	}
 
 	if err := b.Reconfigure(ctx, nil, conf); err != nil {
@@ -249,7 +243,6 @@ func (a *wrappedAnalog) reset(ctx context.Context, chipSelect string, reader *bo
 type sysfsBoard struct {
 	resource.Named
 	mu           sync.RWMutex
-	gpioMappings map[int]GPIOBoardMapping
 	spis         map[string]*spiBus
 	analogs      map[string]*wrappedAnalog
 	pwms         map[string]pwmSetting
@@ -332,32 +325,12 @@ func (b *sysfsBoard) DigitalInterruptNames() []string {
 }
 
 func (b *sysfsBoard) GPIOPinNames() []string {
-	if b.gpioMappings == nil {
-		return nil
-	}
-	names := []string{}
-	for k := range b.gpioMappings {
-		names = append(names, fmt.Sprintf("%d", k))
-	}
-	return names
+	return nil
 }
 
 func (b *sysfsBoard) getGPIOLine(hwPin string) (gpio.PinIO, bool, error) {
 	pinName := hwPin
 	hwPWMSupported := false
-	if b.gpioMappings != nil {
-		pinParsed, err := strconv.ParseInt(hwPin, 10, 32)
-		if err != nil {
-			return nil, false, errors.New("pin cannot be parsed or unset")
-		}
-
-		mapping, ok := b.gpioMappings[int(pinParsed)]
-		if !ok {
-			return nil, false, errors.Errorf("invalid pin \"%d\"", pinParsed)
-		}
-		pinName = fmt.Sprintf("%d", mapping.GPIOGlobal)
-		hwPWMSupported = mapping.HWPWMSupported
-	}
 
 	pin := gpioreg.ByName(pinName)
 	if pin == nil {
