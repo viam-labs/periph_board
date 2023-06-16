@@ -5,14 +5,12 @@ package periphboard
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/edaniels/golog"
 	"github.com/pkg/errors"
-	"go.uber.org/multierr"
 	commonpb "go.viam.com/api/common/v1"
 	pb "go.viam.com/api/component/board/v1"
 	goutils "go.viam.com/utils"
