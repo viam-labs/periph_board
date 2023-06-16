@@ -1,7 +1,8 @@
 //go:build linux
 
-// Package genericlinux is for boards that run Linux. This file is for I2C support on those boards.
-package genericlinux
+// Package periphboard is for boards that run Linux and use Periph.io for GPIO pins. This file is
+// for I2C support on those boards.
+package periphboard
 
 import (
 	"context"

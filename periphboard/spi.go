@@ -1,6 +1,6 @@
 //go:build linux
 
-package genericlinux
+package periphboard
 
 import (
 	"context"

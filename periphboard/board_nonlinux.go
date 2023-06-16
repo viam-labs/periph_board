@@ -1,8 +1,8 @@
 //go:build !linux
 
-// Package genericlinux is for creating board components running Linux. This file, however, is a
-// placeholder for when you build the server in a non-Linux environment.
-package genericlinux
+// Package periphboard is for creating board components running Linux and using Periph.io. This
+// file, however, is a placeholder for when you build the server in a non-Linux environment.
+package periphboard
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package genericlinux
+package periphboard
 
 import (
 	"fmt"
