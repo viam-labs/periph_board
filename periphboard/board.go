@@ -316,10 +316,6 @@ func (b *sysfsBoard) getGPIOLine(hwPin string) (gpio.PinIO, bool, error) {
 }
 
 func (b *sysfsBoard) GPIOPinByName(pinName string) (board.GPIOPin, error) {
-	return b.periphGPIOPinByName(pinName)
-}
-
-func (b *sysfsBoard) periphGPIOPinByName(pinName string) (board.GPIOPin, error) {
 	pin, hwPWMSupported, err := b.getGPIOLine(pinName)
 	if err != nil {
 		return nil, err
