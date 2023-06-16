@@ -25,25 +25,19 @@ import (
 	"go.viam.com/rdk/resource"
 )
 
+const ModelName = "periph"
+
 // RegisterBoard registers a sysfs based board of the given model.
-func RegisterBoard(modelName string) {
+func init() {
 	resource.RegisterComponent(
 		board.API,
-		resource.DefaultModelFamily.WithModel(modelName),
-		resource.Registration[board.Board, *Config]{
-			Constructor: func(
-				ctx context.Context,
-				_ resource.Dependencies,
-				conf resource.Config,
-				logger golog.Logger,
-			) (board.Board, error) {
-				return newBoard(ctx, conf, logger)
-			},
-		})
+		resource.DefaultModelFamily.WithModel(ModelName),
+		resource.Registration[board.Board, *Config]{Constructor: newBoard})
 }
 
 func newBoard(
 	ctx context.Context,
+	_ resource.Dependencies,
 	conf resource.Config,
 	logger golog.Logger,
 ) (board.Board, error) {
