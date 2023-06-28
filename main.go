@@ -1,5 +1,3 @@
-// (or at least, it will soon. Right now it implements a fake sensor as a "hello world" type
-// example)
 package main
 
 import (
