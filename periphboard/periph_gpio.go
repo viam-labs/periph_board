@@ -39,6 +39,7 @@ func (gp periphGpioPin) set(high bool) error {
 }
 
 func (gp periphGpioPin) Get(ctx context.Context, extra map[string]interface{}) (bool, error) {
+	gp.pin.In(gpio.PullNoChange, gpio.NoEdge)
 	return gp.pin.Read() == gpio.High, nil
 }
 
