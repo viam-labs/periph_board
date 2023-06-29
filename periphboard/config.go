@@ -9,10 +9,8 @@ import (
 
 // A Config describes the configuration of a board and all of its connected parts.
 type Config struct {
-	I2Cs              []board.I2CConfig              `json:"i2cs,omitempty"`
 	SPIs              []board.SPIConfig              `json:"spis,omitempty"`
 	Analogs           []board.AnalogConfig           `json:"analogs,omitempty"`
-	DigitalInterrupts []board.DigitalInterruptConfig `json:"digital_interrupts,omitempty"`
 	Attributes        utils.AttributeMap             `json:"attributes,omitempty"`
 }
 
@@ -23,18 +21,8 @@ func (conf *Config) Validate(path string) ([]string, error) {
 			return nil, err
 		}
 	}
-	for idx, c := range conf.I2Cs {
-		if err := c.Validate(fmt.Sprintf("%s.%s.%d", path, "i2cs", idx)); err != nil {
-			return nil, err
-		}
-	}
 	for idx, c := range conf.Analogs {
 		if err := c.Validate(fmt.Sprintf("%s.%s.%d", path, "analogs", idx)); err != nil {
-			return nil, err
-		}
-	}
-	for idx, c := range conf.DigitalInterrupts {
-		if err := c.Validate(fmt.Sprintf("%s.%s.%d", path, "digital_interrupts", idx)); err != nil {
 			return nil, err
 		}
 	}

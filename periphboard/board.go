@@ -50,7 +50,6 @@ func newBoard(
 		analogs: map[string]*wrappedAnalog{},
 		// this is not yet modified during reconfiguration but maybe should be
 		pwms:       map[string]pwmSetting{},
-		i2cs:       map[string]*i2cBus{},
 	}
 
 	if err := b.Reconfigure(ctx, nil, conf); err != nil {
@@ -76,18 +75,9 @@ func (b *sysfsBoard) Reconfigure(
 		return err
 	}
 
-	if err := b.reconfigureI2cs(newConf); err != nil {
-		return err
-	}
-
 	if err := b.reconfigureAnalogs(ctx, newConf); err != nil {
 		return err
 	}
-
-	if err := b.reconfigureInterrupts(newConf); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -112,41 +102,6 @@ func (b *sysfsBoard) reconfigureSpis(newConf *Config) error {
 			continue
 		}
 		delete(b.spis, name)
-	}
-	return nil
-}
-
-func (b *sysfsBoard) reconfigureI2cs(newConf *Config) error {
-	stillExists := map[string]struct{}{}
-	for _, c := range newConf.I2Cs {
-		stillExists[c.Name] = struct{}{}
-		if curr, ok := b.i2cs[c.Name]; ok {
-			if curr.deviceName == c.Bus {
-				continue
-			}
-			if err := curr.closeableBus.Close(); err != nil {
-				b.logger.Errorw("error closing I2C bus while reconfiguring", "error", err)
-			}
-			if err := curr.reset(curr.deviceName); err != nil {
-				b.logger.Errorw("error resetting I2C bus while reconfiguring", "error", err)
-			}
-			continue
-		}
-		bus, err := newI2cBus(c.Bus)
-		if err != nil {
-			return err
-		}
-		b.i2cs[c.Name] = bus
-	}
-
-	for name := range b.i2cs {
-		if _, ok := stillExists[name]; ok {
-			continue
-		}
-		if err := b.i2cs[name].closeableBus.Close(); err != nil {
-			b.logger.Errorw("error closing I2C bus while reconfiguring", "error", err)
-		}
-		delete(b.i2cs, name)
 	}
 	return nil
 }
@@ -182,13 +137,6 @@ func (b *sysfsBoard) reconfigureAnalogs(ctx context.Context, newConf *Config) er
 		}
 		b.analogs[name].reset(ctx, "", nil)
 		delete(b.analogs, name)
-	}
-	return nil
-}
-
-func (b *sysfsBoard) reconfigureInterrupts(newConf *Config) error {
-	if len(newConf.DigitalInterrupts) != 0 {
-		return errors.New("digital interrupts on Periph GPIO pins are not supported")
 	}
 	return nil
 }
@@ -234,7 +182,6 @@ type sysfsBoard struct {
 	spis         map[string]*spiBus
 	analogs      map[string]*wrappedAnalog
 	pwms         map[string]pwmSetting
-	i2cs         map[string]*i2cBus
 	logger       golog.Logger
 
 	cancelCtx               context.Context
@@ -253,8 +200,7 @@ func (b *sysfsBoard) SPIByName(name string) (board.SPI, bool) {
 }
 
 func (b *sysfsBoard) I2CByName(name string) (board.I2C, bool) {
-	i, ok := b.i2cs[name]
-	return i, ok
+	return nil, false
 }
 
 func (b *sysfsBoard) AnalogReaderByName(name string) (board.AnalogReader, bool) {
@@ -278,14 +224,7 @@ func (b *sysfsBoard) SPINames() []string {
 }
 
 func (b *sysfsBoard) I2CNames() []string {
-	if len(b.i2cs) == 0 {
-		return nil
-	}
-	names := make([]string, 0, len(b.i2cs))
-	for k := range b.i2cs {
-		names = append(names, k)
-	}
-	return names
+	return nil
 }
 
 func (b *sysfsBoard) AnalogReaderNames() []string {
