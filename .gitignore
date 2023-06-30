@@ -22,3 +22,5 @@ go.work
 
 # Vim files
 *.swp
+
+periph_board
