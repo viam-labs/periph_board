@@ -15,7 +15,7 @@ import (
 
 // This should be considered const, but go doesn't let you build const things from function calls.
 // modelName is in fake_sensor.go for now.
-var model = resource.NewModel("rdk", "builtin", periphboard.ModelName)
+var model = resource.NewModel("viamlabs", "board", periphboard.ModelName)
 
 func mainWithArgs(ctx context.Context, args []string, logger golog.Logger) (err error) {
 	modalModule, err := module.NewModuleFromArgs(ctx, logger)
