@@ -4,11 +4,20 @@
 
 ## Prerequisites
 
+On the single board computer that will be running viam server and the periph_board module, run these commands:
+
 ``` bash
 sudo apt update && sudo apt upgrade -y
-sudo apt-get install python3
-sudo apt install python3-pip
+sudo apt-get install git
+wget https://go.dev/dl/go1.20.5.linux-arm64.tar.gz
+sudo  rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.20.5.linux-arm64.tar.gz
+echo 'PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc && source ~/.bashrc
+git clone https://github.com/viam-labs/periph_board.git
+cd periph_board
+go build
 ```
+
+Note that if you want to use a different version of Go, you will need to change the go archive paths, and if you are using another shell like zsh you will need to change ~/.bashrc to ~/.zshrc (or similar).
 
 ## API
 
