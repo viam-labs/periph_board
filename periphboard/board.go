@@ -17,6 +17,7 @@ import (
 	"periph.io/x/conn/v3/gpio"
 	"periph.io/x/conn/v3/gpio/gpioreg"
 	"periph.io/x/conn/v3/physic"
+	"periph.io/x/host/v3"
 
 	"go.viam.com/rdk/components/board"
 	"go.viam.com/rdk/grpc"
@@ -39,6 +40,10 @@ func newBoard(
 	conf resource.Config,
 	logger golog.Logger,
 ) (board.Board, error) {
+	if _, err := host.Init(); err != nil {
+		logger.Warnf("error initializing periph host", "error", err)
+	}
+
 	cancelCtx, cancelFunc := context.WithCancel(context.Background())
 	b := sysfsBoard{
 		Named:      conf.ResourceName().AsNamed(),
