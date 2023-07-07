@@ -17,19 +17,19 @@ import (
 	"periph.io/x/conn/v3/gpio"
 	"periph.io/x/conn/v3/gpio/gpioreg"
 	"periph.io/x/conn/v3/physic"
+	"periph.io/x/host/v3"
 
 	"go.viam.com/rdk/components/board"
 	"go.viam.com/rdk/grpc"
 	"go.viam.com/rdk/resource"
 )
 
-const ModelName = "periph"
+var Model = resource.NewModel("viamlabs", "board", "periph")
 
-// RegisterBoard registers a sysfs based board of the given model.
 func init() {
 	resource.RegisterComponent(
 		board.API,
-		resource.DefaultModelFamily.WithModel(ModelName),
+		Model,
 		resource.Registration[board.Board, *Config]{Constructor: newBoard})
 }
 
@@ -39,17 +39,21 @@ func newBoard(
 	conf resource.Config,
 	logger golog.Logger,
 ) (board.Board, error) {
+	if _, err := host.Init(); err != nil {
+		logger.Warnf("error initializing periph host", "error", err)
+	}
+
 	cancelCtx, cancelFunc := context.WithCancel(context.Background())
 	b := sysfsBoard{
-		Named:         conf.ResourceName().AsNamed(),
-		logger:        logger,
-		cancelCtx:     cancelCtx,
-		cancelFunc:    cancelFunc,
+		Named:      conf.ResourceName().AsNamed(),
+		logger:     logger,
+		cancelCtx:  cancelCtx,
+		cancelFunc: cancelFunc,
 
 		spis:    map[string]*spiBus{},
 		analogs: map[string]*wrappedAnalog{},
 		// this is not yet modified during reconfiguration but maybe should be
-		pwms:       map[string]pwmSetting{},
+		pwms: map[string]pwmSetting{},
 	}
 
 	if err := b.Reconfigure(ctx, nil, conf); err != nil {
@@ -178,11 +182,11 @@ func (a *wrappedAnalog) reset(ctx context.Context, chipSelect string, reader *bo
 
 type sysfsBoard struct {
 	resource.Named
-	mu           sync.RWMutex
-	spis         map[string]*spiBus
-	analogs      map[string]*wrappedAnalog
-	pwms         map[string]pwmSetting
-	logger       golog.Logger
+	mu      sync.RWMutex
+	spis    map[string]*spiBus
+	analogs map[string]*wrappedAnalog
+	pwms    map[string]pwmSetting
+	logger  golog.Logger
 
 	cancelCtx               context.Context
 	cancelFunc              func()
