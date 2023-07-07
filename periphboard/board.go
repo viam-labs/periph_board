@@ -26,7 +26,6 @@ import (
 
 var Model = resource.NewModel("viamlabs", "board", "periph")
 
-// RegisterBoard registers a sysfs based board of the given model.
 func init() {
 	resource.RegisterComponent(
 		board.API,
