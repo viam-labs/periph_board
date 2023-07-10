@@ -22,7 +22,7 @@ This will create an executable named `periph_board`.
 Note that if you want to use a different version of Go, you will need to change the go archive paths.
 If you are using another shell like zsh you will need to change ~/.bashrc to ~/.zshrc (or similar).
 
-Also see [examples](#viam-server-board-setup-examples) of installing viam-server on various SBCs.
+Also see [examples](#viam-server-board-setup-examples) of setting up your board and installing viam-server on various SBCs.
 
 ## API
 
@@ -125,7 +125,7 @@ param_spidev_spi_bus=1
 param_spidev_spi_cs=1
 ```
 
-Now install the Orange Pi gpio tool:
+Now install the Orange Pi gpio tool, which is useful to see the GPIO pin numbering for your board:
 
 ``` bash
 git clone https://github.com/orangepi-xunlong/wiringOP
