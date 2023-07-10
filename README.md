@@ -117,7 +117,7 @@ Enable the host being announced on the network by running `orangepi-config` and 
 
 While still in `orangepi-config`, change the hostname to your preference by going to Personal->Hostname.
 
-Enable i2c and spi by editing `/boot/orangepiEnv.txt`, adding the line:
+If you want to use the I2C or SPI buses, enable i2c and spi by editing `/boot/orangepiEnv.txt`, adding the lines:
 
 ``` bash
 overlays=i2c3 spi-spidev
