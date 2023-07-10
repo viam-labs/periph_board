@@ -84,7 +84,7 @@ If you prefer to edit raw configuration JSON, make sure inside the main block yo
 
 ### Orange Pi Zero 2
 
-The [Orange Pi Zero 2](http://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/details/Orange-Pi-Zero-2.html) is an open-source SBC with dual-band wireless WiFi and Bluetooth 5.0 .It is highly compact with a dimension of 53X60mm. It can run Android10, Ubuntu, Debian.
+The [Orange Pi Zero 2](http://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/details/Orange-Pi-Zero-2.html) is an open-source SBC with dual-band wireless WiFi and Bluetooth 5.0 .It is highly compact with a dimension of 53X60mm. It can run Android10, Ubuntu, and Debian.
 
 Start by downloading the latest Linux distribution from OrangePi.
 We tested and had success with the [Debian bullseye distribution](https://drive.google.com/drive/folders/1Xk7b1jOMg-rftowFLExynLg0CyuQ7kCM).
@@ -141,7 +141,7 @@ You should now be able to connect to the Pi headless via `ssh <user>@<hostname>.
 ### Rock Pi S
 
 The [Rock Pi S](https://wiki.radxa.com/RockpiS) is a Rockchip RK3308 based SBC (Single Board Computer) by Radxa.
-It equips a 64bits quad core processor, USB, ethernet, wireless connectivity and voice detection engine at the size of 1.7 inch, makes it perfect for IoT and voice applications.
+It equips a 64bit quad core processor, USB, ethernet, wireless connectivity and voice detection engine at the size of 1.7 inch, makes it perfect for IoT and voice applications.
 
 Start by downloading the latest Armbian distribution for the RockPi S.
 We tested and had success with the [Bookwork distribution](https://www.armbian.com/rockpi-s/).
