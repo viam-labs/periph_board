@@ -1,6 +1,6 @@
 # periph_board modular board component
 
-*periph_board* is a Viam modular board component that an periph.io based GPIO interface for single board computers.
+*periph_board* is a Viam modular board component that provides a periph.io based GPIO interface for single board computers.
 
 ## Build
 
@@ -91,7 +91,7 @@ We tested and had success with the [Debian bullseye distribution](https://drive.
 
 Flash this image to an SD card with [Balena Etcher](https://etcher.balena.io/)
 
-Then insert the flashed SD card to the Orange Pi, plug the Pi into a monitor with an mini-HDMI cable, and plug in the Pi to with a 5v power supply.
+Then insert the flashed SD card to the Orange Pi, plug the Pi into a monitor with an mini-HDMI cable, and plug in the Pi with a 5v power supply.
 Log in with the credentials root/orangepi.
 
 Secure the Pi:
@@ -140,7 +140,7 @@ You should now be able to connect to the Pi headless via `ssh <user>@<hostname>.
 
 ### Rock Pi S
 
-The [Rock Pi S](https://wiki.radxa.com/RockpiS) is a Rockchip RK3308 based SBC(Single Board Computer) by Radxa.
+The [Rock Pi S](https://wiki.radxa.com/RockpiS) is a Rockchip RK3308 based SBC (Single Board Computer) by Radxa.
 It equips a 64bits quad core processor, USB, ethernet, wireless connectivity and voice detection engine at the size of 1.7 inch, makes it perfect for IoT and voice applications.
 
 Start by downloading the latest Armbian distribution for the RockPi S.
@@ -148,7 +148,7 @@ We tested and had success with the [Bookwork distribution](https://www.armbian.c
 
 Flash this image to an SD card with [Balena Etcher](https://etcher.balena.io/)
 
-Then insert the flashed SD card to the Rock Pi, plug the Pi into a router with an ethernet cable, and plug in the Pi to with a 5v power supply.
+Then insert the flashed SD card to the Rock Pi, plug the Pi into a router with an ethernet cable, and plug in the Pi with a 5v power supply.
 Find the IP address (we looked at devices attached to router), and ssh to that IP as the user `root`.
 Log in with the password *1234*.
 
