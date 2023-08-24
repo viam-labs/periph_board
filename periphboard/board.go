@@ -311,7 +311,7 @@ func (b *sysfsBoard) softwarePWMLoop(ctx context.Context, gp periphGpioPin) {
 }
 
 func (b *sysfsBoard) Status(ctx context.Context, extra map[string]interface{}) (*commonpb.BoardStatus, error) {
-	return &commonpb.BoardStatus{}, nil
+	return board.CreateStatus(ctx, b, extra)
 }
 
 func (b *sysfsBoard) ModelAttributes() board.ModelAttributes {
