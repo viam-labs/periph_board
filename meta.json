@@ -1,0 +1,13 @@
+{
+  "module_id": "viam-labs:periph-board",
+  "visibility": "public",
+  "url": "https://github.com/viam-labs/periph_board",
+  "description": "periph_board is a Viam modular board component that provides a periph.io based GPIO interface for single board computers",
+  "models": [
+    {
+      "api": "rdk:component:board",
+      "model": "viam-labs:board:periph"
+    }
+  ],
+  "entrypoint": ""
+}
