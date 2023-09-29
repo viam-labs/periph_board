@@ -24,7 +24,7 @@ import (
 	"go.viam.com/rdk/resource"
 )
 
-var Model = resource.NewModel("viamlabs", "board", "periph")
+var Model = resource.NewModel("viam-labs", "board", "periph")
 
 func init() {
 	resource.RegisterComponent(

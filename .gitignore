@@ -24,3 +24,5 @@ go.work
 *.swp
 
 periph_board
+exec
+module.tar.gz
