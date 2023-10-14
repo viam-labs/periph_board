@@ -144,7 +144,7 @@ The [Rock Pi S](https://wiki.radxa.com/RockpiS) is a Rockchip RK3308 based SBC (
 It equips a 64bit quad core processor, USB, ethernet, wireless connectivity and voice detection engine at the size of 1.7 inch, makes it perfect for IoT and voice applications.
 
 Start by downloading the latest Armbian distribution for the RockPi S.
-We tested and had success with the [Bookwork distribution](https://www.armbian.com/rockpi-s/).
+We tested and had success with the [Bookworm distribution](https://www.armbian.com/rockpi-s/).
 
 Flash this image to an SD card with [Balena Etcher](https://etcher.balena.io/)
 
@@ -184,7 +184,7 @@ The [Radxa Zero]([https://wiki.radxa.com/RockpiS](https://wiki.radxa.com/Zero) i
 Radxa Zero features a quad core 64-bit ARM processor, up to 4GB 32bit LPDDR4 memory, HDMI output at 4K@60, WiFi and BT connectivity, USB 3.0, and 40-pin GPIO header. Additionally, the power port can also be used for USB 2.0 OTG to connect more peripheral.
 
 Start by downloading the latest Armbian distribution for the Radxa Zero.
-We tested and had success with the [Bookwork distribution](https://www.armbian.com/radxa-zero/).
+We tested and had success with the [Bookworm distribution](https://www.armbian.com/radxa-zero/).
 
 Flash this image to an SD card with [Balena Etcher](https://etcher.balena.io/)
 
