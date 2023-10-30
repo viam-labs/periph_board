@@ -109,18 +109,18 @@ Secure the Pi:
 - Change the root password by issuing the `passwd` command.
 - Change the password for the `orangepi` user account by issuing the commmand `passwd orangepi`
 
-Update the software:
-
-``` bash
-apt update
-apt upgrade
-```
-
 Enable wifi:
 
 ```bash
 nmcli dev wifi
 nmcli dev wifi connect <wifi_name> password <wifi_passwd>
+```
+
+Update the software:
+
+``` bash
+apt update
+apt upgrade
 ```
 
 Enable the host being announced on the network by running `orangepi-config` and going to System->Avahi and *Enable system announce in the network*.
