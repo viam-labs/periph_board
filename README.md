@@ -2,7 +2,17 @@
 
 *periph_board* is a Viam modular board component that provides a periph.io based GPIO interface for single board computers.
 
-## Build
+### Install Using the Registry
+
+The recommended way to install the module is through the viam registry.
+
+- Go to your robot's page on app.viam.com.
+- Click on the *Create Component* button in the Components section.
+- Search for the *periph* board component and select it. 
+
+This will automatically install the module to your robot.
+
+## Install locally
 
 On the single board computer that will be running viam-server and the periph_board module, run these commands to install prerequisites and build:
 
