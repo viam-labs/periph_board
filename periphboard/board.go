@@ -50,7 +50,6 @@ func newBoard(
 		cancelCtx:  cancelCtx,
 		cancelFunc: cancelFunc,
 
-		spis:    map[string]*spiBus{},
 		analogs: map[string]*wrappedAnalog{},
 		// this is not yet modified during reconfiguration but maybe should be
 		pwms: map[string]pwmSetting{},
@@ -75,37 +74,8 @@ func (b *sysfsBoard) Reconfigure(
 		return err
 	}
 
-	if err := b.reconfigureSpis(newConf); err != nil {
-		return err
-	}
-
 	if err := b.reconfigureAnalogs(ctx, newConf); err != nil {
 		return err
-	}
-	return nil
-}
-
-// This never returns errors, but we give it the same function signature as the other
-// reconfiguration helpers for consistency.
-func (b *sysfsBoard) reconfigureSpis(newConf *Config) error {
-	stillExists := map[string]struct{}{}
-	for _, c := range newConf.SPIs {
-		stillExists[c.Name] = struct{}{}
-		if curr, ok := b.spis[c.Name]; ok {
-			if busPtr := curr.bus.Load(); busPtr != nil && *busPtr != c.BusSelect {
-				curr.reset(c.BusSelect)
-			}
-			continue
-		}
-		b.spis[c.Name] = &spiBus{}
-		b.spis[c.Name].reset(c.BusSelect)
-	}
-
-	for name := range b.spis {
-		if _, ok := stillExists[name]; ok {
-			continue
-		}
-		delete(b.spis, name)
 	}
 	return nil
 }
@@ -183,7 +153,6 @@ func (a *wrappedAnalog) reset(ctx context.Context, chipSelect string, reader *bo
 type sysfsBoard struct {
 	resource.Named
 	mu      sync.RWMutex
-	spis    map[string]*spiBus
 	analogs map[string]*wrappedAnalog
 	pwms    map[string]pwmSetting
 	logger  golog.Logger
@@ -198,15 +167,6 @@ type pwmSetting struct {
 	frequency physic.Frequency
 }
 
-func (b *sysfsBoard) SPIByName(name string) (board.SPI, bool) {
-	s, ok := b.spis[name]
-	return s, ok
-}
-
-func (b *sysfsBoard) I2CByName(name string) (board.I2C, bool) {
-	return nil, false
-}
-
 func (b *sysfsBoard) AnalogReaderByName(name string) (board.AnalogReader, bool) {
 	a, ok := b.analogs[name]
 	return a, ok
@@ -214,21 +174,6 @@ func (b *sysfsBoard) AnalogReaderByName(name string) (board.AnalogReader, bool) 
 
 func (b *sysfsBoard) DigitalInterruptByName(name string) (board.DigitalInterrupt, bool) {
 	return nil, false // Digital interrupts aren't supported.
-}
-
-func (b *sysfsBoard) SPINames() []string {
-	if len(b.spis) == 0 {
-		return nil
-	}
-	names := make([]string, 0, len(b.spis))
-	for k := range b.spis {
-		names = append(names, k)
-	}
-	return names
-}
-
-func (b *sysfsBoard) I2CNames() []string {
-	return nil
 }
 
 func (b *sysfsBoard) AnalogReaderNames() []string {
@@ -240,10 +185,6 @@ func (b *sysfsBoard) AnalogReaderNames() []string {
 }
 
 func (b *sysfsBoard) DigitalInterruptNames() []string {
-	return nil
-}
-
-func (b *sysfsBoard) GPIOPinNames() []string {
 	return nil
 }
 
