@@ -1,9 +1,6 @@
 package periphboard
 
 import (
-	"fmt"
-
-	"go.viam.com/rdk/components/board"
 	"go.viam.com/rdk/utils"
 )
 

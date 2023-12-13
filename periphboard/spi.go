@@ -14,7 +14,7 @@ import (
 	"periph.io/x/conn/v3/spi"
 	"periph.io/x/conn/v3/spi/spireg"
 
-	"go.viam.com/rdk/components/board"
+	"go.viam.com/rdk/components/board/genericlinux/buses"
 )
 
 type spiBus struct {
@@ -28,7 +28,7 @@ type spiHandle struct {
 	isClosed bool
 }
 
-func (sb *spiBus) OpenHandle() (board.SPIHandle, error) {
+func (sb *spiBus) OpenHandle() (buses.SPIHandle, error) {
 	sb.mu.Lock()
 	sb.openHandle = &spiHandle{bus: sb, isClosed: false}
 	return sb.openHandle, nil

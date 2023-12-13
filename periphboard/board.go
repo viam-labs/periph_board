@@ -20,6 +20,7 @@ import (
 	"periph.io/x/host/v3"
 
 	"go.viam.com/rdk/components/board"
+	"go.viam.com/rdk/components/board/mcp3008helper"
 	"go.viam.com/rdk/grpc"
 	"go.viam.com/rdk/resource"
 )
@@ -96,12 +97,12 @@ func (b *sysfsBoard) reconfigureAnalogs(ctx context.Context, newConf *Config) er
 		stillExists[c.Name] = struct{}{}
 		if curr, ok := b.analogs[c.Name]; ok {
 			if curr.chipSelect != c.ChipSelect {
-				ar := &board.MCP3008AnalogReader{channel, bus, c.ChipSelect}
+				ar := &mcp3008helper.MCP3008AnalogReader{channel, bus, c.ChipSelect}
 				curr.reset(ctx, curr.chipSelect, board.SmoothAnalogReader(ar, c, b.logger))
 			}
 			continue
 		}
-		ar := &board.MCP3008AnalogReader{channel, bus, c.ChipSelect}
+		ar := &mcp3008helper.MCP3008AnalogReader{channel, bus, c.ChipSelect}
 		b.analogs[c.Name] = newWrappedAnalog(ctx, c.ChipSelect, board.SmoothAnalogReader(ar, c, b.logger))
 	}
 
@@ -208,6 +209,10 @@ func (b *sysfsBoard) GPIOPinByName(pinName string) (board.GPIOPin, error) {
 	return periphGpioPin{b, pin, pinName, hwPWMSupported}, nil
 }
 
+func (b *sysfsBoard) WriteAnalog(ctx context.Context, pin string, value int32, extra map[string]interface{}) error {
+	return errors.New("analog writing is not implemented")
+}
+
 // expects to already have lock acquired.
 func (b *sysfsBoard) startSoftwarePWMLoop(gp periphGpioPin) {
 	b.activeBackgroundWorkers.Add(1)
@@ -253,10 +258,6 @@ func (b *sysfsBoard) softwarePWMLoop(ctx context.Context, gp periphGpioPin) {
 
 func (b *sysfsBoard) Status(ctx context.Context, extra map[string]interface{}) (*commonpb.BoardStatus, error) {
 	return board.CreateStatus(ctx, b, extra)
-}
-
-func (b *sysfsBoard) ModelAttributes() board.ModelAttributes {
-	return board.ModelAttributes{}
 }
 
 func (b *sysfsBoard) SetPowerMode(ctx context.Context, mode pb.PowerMode, duration *time.Duration) error {
