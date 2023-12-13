@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/edaniels/golog"
 	"github.com/pkg/errors"
 	commonpb "go.viam.com/api/common/v1"
 	pb "go.viam.com/api/component/board/v1"
@@ -23,6 +22,7 @@ import (
 	"go.viam.com/rdk/components/board/genericlinux/buses"
 	"go.viam.com/rdk/components/board/mcp3008helper"
 	"go.viam.com/rdk/grpc"
+	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/resource"
 )
 
@@ -39,7 +39,7 @@ func newBoard(
 	ctx context.Context,
 	_ resource.Dependencies,
 	conf resource.Config,
-	logger golog.Logger,
+	logger logging.Logger,
 ) (board.Board, error) {
 	if _, err := host.Init(); err != nil {
 		logger.Warnf("error initializing periph host", "error", err)
@@ -156,7 +156,7 @@ type sysfsBoard struct {
 	mu      sync.RWMutex
 	analogs map[string]*wrappedAnalog
 	pwms    map[string]pwmSetting
-	logger  golog.Logger
+	logger  logging.Logger
 
 	cancelCtx               context.Context
 	cancelFunc              func()
