@@ -20,6 +20,7 @@ import (
 	"periph.io/x/host/v3"
 
 	"go.viam.com/rdk/components/board"
+	"go.viam.com/rdk/components/board/genericlinux/buses"
 	"go.viam.com/rdk/components/board/mcp3008helper"
 	"go.viam.com/rdk/grpc"
 	"go.viam.com/rdk/resource"
@@ -89,14 +90,12 @@ func (b *sysfsBoard) reconfigureAnalogs(ctx context.Context, newConf *Config) er
 			return errors.Errorf("bad analog pin (%s)", c.Pin)
 		}
 
-		bus, ok := b.spis[c.SPIBus]
-		if !ok {
-			return errors.Errorf("can't find SPI bus (%s) requested by AnalogReader", c.SPIBus)
-		}
+		bus := buses.NewSpiBus(c.SPIBus)
 
 		stillExists[c.Name] = struct{}{}
 		if curr, ok := b.analogs[c.Name]; ok {
 			if curr.chipSelect != c.ChipSelect {
+				// It already exists but has changed chip selects.
 				ar := &mcp3008helper.MCP3008AnalogReader{channel, bus, c.ChipSelect}
 				curr.reset(ctx, curr.chipSelect, board.SmoothAnalogReader(ar, c, b.logger))
 			}
@@ -106,6 +105,7 @@ func (b *sysfsBoard) reconfigureAnalogs(ctx context.Context, newConf *Config) er
 		b.analogs[c.Name] = newWrappedAnalog(ctx, c.ChipSelect, board.SmoothAnalogReader(ar, c, b.logger))
 	}
 
+	// For each old analog, if it doesn't exist any more, remove it.
 	for name := range b.analogs {
 		if _, ok := stillExists[name]; ok {
 			continue
