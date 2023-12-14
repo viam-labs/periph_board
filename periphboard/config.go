@@ -14,5 +14,10 @@ type Config struct {
 
 // Validate ensures all parts of the config are valid.
 func (conf *Config) Validate(path string) ([]string, error) {
+	for idx, c := range conf.Analogs {
+		if err := c.Validate(fmt.Sprintf("%s.%s.%d", path, "analogs", idx)); err != nil {
+			return nil, err
+		}
+	}
 	return nil, nil
 }
