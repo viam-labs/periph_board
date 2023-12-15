@@ -1,6 +1,7 @@
 package periphboard
 
 import (
+	"fmt"
 	"go.viam.com/rdk/utils"
 
 	"go.viam.com/rdk/components/board/mcp3008helper"

@@ -97,12 +97,22 @@ func (b *sysfsBoard) reconfigureAnalogs(ctx context.Context, newConf *Config) er
 			if curr.chipSelect != c.ChipSelect {
 				// It already exists but has changed chip selects.
 				ar := &mcp3008helper.MCP3008AnalogReader{channel, bus, c.ChipSelect}
-				curr.reset(ctx, curr.chipSelect, board.SmoothAnalogReader(ar, c, b.logger))
+				// The SmoothAnalogReader needs a config in a slightly different format.
+				smootherConfig := board.AnalogReaderConfig{
+					AverageOverMillis: c.AverageOverMillis, SamplesPerSecond: c.SamplesPerSecond,
+				}
+				smoother := board.SmoothAnalogReader(ar, smootherConfig, b.logger)
+				curr.reset(ctx, curr.chipSelect, smoother)
 			}
 			continue
 		}
 		ar := &mcp3008helper.MCP3008AnalogReader{channel, bus, c.ChipSelect}
-		b.analogs[c.Name] = newWrappedAnalog(ctx, c.ChipSelect, board.SmoothAnalogReader(ar, c, b.logger))
+		// The SmoothAnalogReader needs a config in a slightly different format.
+		smootherConfig := board.AnalogReaderConfig{
+			AverageOverMillis: c.AverageOverMillis, SamplesPerSecond: c.SamplesPerSecond,
+		}
+		smoother := board.SmoothAnalogReader(ar, smootherConfig, b.logger)
+		b.analogs[c.Name] = newWrappedAnalog(ctx, c.ChipSelect, smoother)
 	}
 
 	// For each old analog, if it doesn't exist any more, remove it.
