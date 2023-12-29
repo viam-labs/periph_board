@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"go.uber.org/multierr"
 	commonpb "go.viam.com/api/common/v1"
 	pb "go.viam.com/api/component/board/v1"
 	goutils "go.viam.com/utils"
@@ -121,6 +122,7 @@ func (b *sysfsBoard) reconfigureAnalogs(ctx context.Context, newConf *Config) er
 			continue
 		}
 		b.analogs[name].reset(ctx, "", nil)
+		b.analogs[name].Close(ctx)
 		delete(b.analogs, name)
 	}
 	return nil
@@ -148,7 +150,7 @@ func (a *wrappedAnalog) Read(ctx context.Context, extra map[string]interface{}) 
 }
 
 func (a *wrappedAnalog) Close(ctx context.Context) error {
-	return nil
+	return a.reader.Close(ctx)
 }
 
 func (a *wrappedAnalog) reset(ctx context.Context, chipSelect string, reader *board.AnalogSmoother) {
@@ -279,5 +281,9 @@ func (b *sysfsBoard) Close(ctx context.Context) error {
 	b.cancelFunc()
 	b.mu.Unlock()
 	b.activeBackgroundWorkers.Wait()
-	return nil
+	var err error
+	for _, analog := range b.analogs {
+		err = multierr.Combine(err, analog.Close(ctx))
+	}
+	return err
 }
