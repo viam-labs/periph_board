@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/edaniels/golog"
 	"github.com/pkg/errors"
+	"go.uber.org/multierr"
 	commonpb "go.viam.com/api/common/v1"
 	pb "go.viam.com/api/component/board/v1"
 	goutils "go.viam.com/utils"
@@ -20,7 +20,10 @@ import (
 	"periph.io/x/host/v3"
 
 	"go.viam.com/rdk/components/board"
+	"go.viam.com/rdk/components/board/genericlinux/buses"
+	"go.viam.com/rdk/components/board/mcp3008helper"
 	"go.viam.com/rdk/grpc"
+	"go.viam.com/rdk/logging"
 	"go.viam.com/rdk/resource"
 )
 
@@ -37,7 +40,7 @@ func newBoard(
 	ctx context.Context,
 	_ resource.Dependencies,
 	conf resource.Config,
-	logger golog.Logger,
+	logger logging.Logger,
 ) (board.Board, error) {
 	if _, err := host.Init(); err != nil {
 		logger.Warnf("error initializing periph host", "error", err)
@@ -50,7 +53,6 @@ func newBoard(
 		cancelCtx:  cancelCtx,
 		cancelFunc: cancelFunc,
 
-		spis:    map[string]*spiBus{},
 		analogs: map[string]*wrappedAnalog{},
 		// this is not yet modified during reconfiguration but maybe should be
 		pwms: map[string]pwmSetting{},
@@ -75,37 +77,8 @@ func (b *sysfsBoard) Reconfigure(
 		return err
 	}
 
-	if err := b.reconfigureSpis(newConf); err != nil {
-		return err
-	}
-
 	if err := b.reconfigureAnalogs(ctx, newConf); err != nil {
 		return err
-	}
-	return nil
-}
-
-// This never returns errors, but we give it the same function signature as the other
-// reconfiguration helpers for consistency.
-func (b *sysfsBoard) reconfigureSpis(newConf *Config) error {
-	stillExists := map[string]struct{}{}
-	for _, c := range newConf.SPIs {
-		stillExists[c.Name] = struct{}{}
-		if curr, ok := b.spis[c.Name]; ok {
-			if busPtr := curr.bus.Load(); busPtr != nil && *busPtr != c.BusSelect {
-				curr.reset(c.BusSelect)
-			}
-			continue
-		}
-		b.spis[c.Name] = &spiBus{}
-		b.spis[c.Name].reset(c.BusSelect)
-	}
-
-	for name := range b.spis {
-		if _, ok := stillExists[name]; ok {
-			continue
-		}
-		delete(b.spis, name)
 	}
 	return nil
 }
@@ -118,28 +91,38 @@ func (b *sysfsBoard) reconfigureAnalogs(ctx context.Context, newConf *Config) er
 			return errors.Errorf("bad analog pin (%s)", c.Pin)
 		}
 
-		bus, ok := b.spis[c.SPIBus]
-		if !ok {
-			return errors.Errorf("can't find SPI bus (%s) requested by AnalogReader", c.SPIBus)
-		}
+		bus := buses.NewSpiBus(c.SPIBus)
 
 		stillExists[c.Name] = struct{}{}
 		if curr, ok := b.analogs[c.Name]; ok {
 			if curr.chipSelect != c.ChipSelect {
-				ar := &board.MCP3008AnalogReader{channel, bus, c.ChipSelect}
-				curr.reset(ctx, curr.chipSelect, board.SmoothAnalogReader(ar, c, b.logger))
+				// It already exists but has changed chip selects.
+				ar := &mcp3008helper.MCP3008AnalogReader{channel, bus, c.ChipSelect}
+				// The SmoothAnalogReader needs a config in a slightly different format.
+				smootherConfig := board.AnalogReaderConfig{
+					AverageOverMillis: c.AverageOverMillis, SamplesPerSecond: c.SamplesPerSecond,
+				}
+				smoother := board.SmoothAnalogReader(ar, smootherConfig, b.logger)
+				curr.reset(ctx, curr.chipSelect, smoother)
 			}
 			continue
 		}
-		ar := &board.MCP3008AnalogReader{channel, bus, c.ChipSelect}
-		b.analogs[c.Name] = newWrappedAnalog(ctx, c.ChipSelect, board.SmoothAnalogReader(ar, c, b.logger))
+		ar := &mcp3008helper.MCP3008AnalogReader{channel, bus, c.ChipSelect}
+		// The SmoothAnalogReader needs a config in a slightly different format.
+		smootherConfig := board.AnalogReaderConfig{
+			AverageOverMillis: c.AverageOverMillis, SamplesPerSecond: c.SamplesPerSecond,
+		}
+		smoother := board.SmoothAnalogReader(ar, smootherConfig, b.logger)
+		b.analogs[c.Name] = newWrappedAnalog(ctx, c.ChipSelect, smoother)
 	}
 
+	// For each old analog, if it doesn't exist any more, remove it.
 	for name := range b.analogs {
 		if _, ok := stillExists[name]; ok {
 			continue
 		}
 		b.analogs[name].reset(ctx, "", nil)
+		b.analogs[name].Close(ctx)
 		delete(b.analogs, name)
 	}
 	return nil
@@ -167,7 +150,7 @@ func (a *wrappedAnalog) Read(ctx context.Context, extra map[string]interface{}) 
 }
 
 func (a *wrappedAnalog) Close(ctx context.Context) error {
-	return nil
+	return a.reader.Close(ctx)
 }
 
 func (a *wrappedAnalog) reset(ctx context.Context, chipSelect string, reader *board.AnalogSmoother) {
@@ -183,10 +166,9 @@ func (a *wrappedAnalog) reset(ctx context.Context, chipSelect string, reader *bo
 type sysfsBoard struct {
 	resource.Named
 	mu      sync.RWMutex
-	spis    map[string]*spiBus
 	analogs map[string]*wrappedAnalog
 	pwms    map[string]pwmSetting
-	logger  golog.Logger
+	logger  logging.Logger
 
 	cancelCtx               context.Context
 	cancelFunc              func()
@@ -198,15 +180,6 @@ type pwmSetting struct {
 	frequency physic.Frequency
 }
 
-func (b *sysfsBoard) SPIByName(name string) (board.SPI, bool) {
-	s, ok := b.spis[name]
-	return s, ok
-}
-
-func (b *sysfsBoard) I2CByName(name string) (board.I2C, bool) {
-	return nil, false
-}
-
 func (b *sysfsBoard) AnalogReaderByName(name string) (board.AnalogReader, bool) {
 	a, ok := b.analogs[name]
 	return a, ok
@@ -214,21 +187,6 @@ func (b *sysfsBoard) AnalogReaderByName(name string) (board.AnalogReader, bool) 
 
 func (b *sysfsBoard) DigitalInterruptByName(name string) (board.DigitalInterrupt, bool) {
 	return nil, false // Digital interrupts aren't supported.
-}
-
-func (b *sysfsBoard) SPINames() []string {
-	if len(b.spis) == 0 {
-		return nil
-	}
-	names := make([]string, 0, len(b.spis))
-	for k := range b.spis {
-		names = append(names, k)
-	}
-	return names
-}
-
-func (b *sysfsBoard) I2CNames() []string {
-	return nil
 }
 
 func (b *sysfsBoard) AnalogReaderNames() []string {
@@ -240,10 +198,6 @@ func (b *sysfsBoard) AnalogReaderNames() []string {
 }
 
 func (b *sysfsBoard) DigitalInterruptNames() []string {
-	return nil
-}
-
-func (b *sysfsBoard) GPIOPinNames() []string {
 	return nil
 }
 
@@ -265,6 +219,10 @@ func (b *sysfsBoard) GPIOPinByName(pinName string) (board.GPIOPin, error) {
 	}
 
 	return periphGpioPin{b, pin, pinName, hwPWMSupported}, nil
+}
+
+func (b *sysfsBoard) WriteAnalog(ctx context.Context, pin string, value int32, extra map[string]interface{}) error {
+	return errors.New("analog writing is not implemented")
 }
 
 // expects to already have lock acquired.
@@ -314,10 +272,6 @@ func (b *sysfsBoard) Status(ctx context.Context, extra map[string]interface{}) (
 	return board.CreateStatus(ctx, b, extra)
 }
 
-func (b *sysfsBoard) ModelAttributes() board.ModelAttributes {
-	return board.ModelAttributes{}
-}
-
 func (b *sysfsBoard) SetPowerMode(ctx context.Context, mode pb.PowerMode, duration *time.Duration) error {
 	return grpc.UnimplementedError
 }
@@ -327,5 +281,9 @@ func (b *sysfsBoard) Close(ctx context.Context) error {
 	b.cancelFunc()
 	b.mu.Unlock()
 	b.activeBackgroundWorkers.Wait()
-	return nil
+	var err error
+	for _, analog := range b.analogs {
+		err = multierr.Combine(err, analog.Close(ctx))
+	}
+	return err
 }

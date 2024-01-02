@@ -9,5 +9,5 @@
       "model": "viam-labs:board:periph"
     }
   ],
-  "entrypoint": ""
+  "entrypoint": "periph_board"
 }
