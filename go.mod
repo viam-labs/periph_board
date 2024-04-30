@@ -7,7 +7,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	go.uber.org/multierr v1.11.0
 	go.viam.com/api v0.1.227
-	go.viam.com/rdk v0.15.0
+	go.viam.com/rdk v0.26.0
 	go.viam.com/utils v0.1.54
 	periph.io/x/conn/v3 v3.7.0
 	periph.io/x/host/v3 v3.8.1-0.20230331112814-9f0d9f7d76db
