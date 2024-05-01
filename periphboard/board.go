@@ -180,7 +180,7 @@ type pwmSetting struct {
 	frequency physic.Frequency
 }
 
-func (b *sysfsBoard) AnalogReaderByName(name string) (board.AnalogReader, bool) {
+func (b *sysfsBoard) AnalogByName(name string) (board.AnalogReader, bool) {
 	a, ok := b.analogs[name]
 	return a, ok
 }
@@ -268,8 +268,8 @@ func (b *sysfsBoard) softwarePWMLoop(ctx context.Context, gp periphGpioPin) {
 	}
 }
 
-func (b *sysfsBoard) Status(ctx context.Context, extra map[string]interface{}) (*commonpb.BoardStatus, error) {
-	return board.CreateStatus(ctx, b, extra)
+func (b *sysfsBoard) Status(ctx context.Context) (*commonpb.Status, error) {
+	return board.CreateStatus(ctx, b)
 }
 
 func (b *sysfsBoard) SetPowerMode(ctx context.Context, mode pb.PowerMode, duration *time.Duration) error {
