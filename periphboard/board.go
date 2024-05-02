@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	commonpb "go.viam.com/api/common/v1"
 	pb "go.viam.com/api/component/board/v1"
 	goutils "go.viam.com/utils"
 	"periph.io/x/conn/v3/gpio"
@@ -155,10 +154,6 @@ func (b *sysfsBoard) softwarePWMLoop(ctx context.Context, gp periphGpioPin) {
 			return
 		}
 	}
-}
-
-func (b *sysfsBoard) Status(ctx context.Context) (*commonpb.Status, error) {
-	return board.CreateStatus(ctx, b)
 }
 
 func (b *sysfsBoard) SetPowerMode(ctx context.Context, mode pb.PowerMode, duration *time.Duration) error {
