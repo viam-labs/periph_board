@@ -28,7 +28,7 @@ func init() {
 	resource.RegisterComponent(
 		board.API,
 		Model,
-		resource.Registration[board.Board, *Config]{Constructor: newBoard})
+		resource.Registration[board.Board, *resource.NoNativeConfig]{Constructor: newBoard})
 }
 
 func newBoard(
