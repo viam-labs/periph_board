@@ -165,6 +165,15 @@ func (b *sysfsBoard) SetPowerMode(ctx context.Context, mode pb.PowerMode, durati
 	return grpc.UnimplementedError
 }
 
+func (b *sysfsBoard) StreamTicks(
+	ctx context.Context,
+	interrupts []board.DigitalInterrupt,
+	ch chan board.Tick,
+	extra map[string]interface{},
+) error {
+	return grpc.UnimplementedError
+}
+
 func (b *sysfsBoard) Close(ctx context.Context) error {
 	b.mu.Lock()
 	b.cancelFunc()
