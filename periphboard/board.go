@@ -53,30 +53,13 @@ func newBoard(
 		pwms: map[string]pwmSetting{},
 	}
 
-	if err := b.Reconfigure(ctx, nil, conf); err != nil {
-		return nil, err
-	}
 	return &b, nil
-}
-
-func (b *sysfsBoard) Reconfigure(
-	ctx context.Context,
-	_ resource.Dependencies,
-	conf resource.Config,
-) error {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	newConf, err := resource.NativeConfig[*Config](conf)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 type sysfsBoard struct {
 	resource.Named
+	resource.TriviallyReconfigurable
+
 	mu      sync.RWMutex
 	pwms    map[string]pwmSetting
 	logger  logging.Logger
