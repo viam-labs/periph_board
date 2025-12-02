@@ -1,22 +1,36 @@
-# periph_board modular board component
+# `periph_board` modular component
 
-*periph_board* is a Viam modular board component that provides a periph.io based GPIO interface for single board computers.
+This module implements the [Viam board API](https://docs.viam.com/dev/reference/apis/components/board/) in a `viamlabs:board:periph` model.
 
-### Install Using the Registry
+With this model, you can access GPIO interfaces on single board computers using a periph.io based implementation.
 
-The recommended way to install the module is through the viam registry.
+Navigate to the **CONFIGURE** tab of your machine's page.
 
-- Go to your robot's page on app.viam.com.
-- Click on the *Create Component* button in the Components section.
-- Search for the *periph* board component and select it. 
+Click the **+** button, select **Component or service**, then select the `board / viamlabs:board:periph` model provided by the [`periph` module](https://app.viam.com/module/viamlabs/periph).
 
-This will automatically install the module to your robot.
+Click **Add module**, enter a name for your board, and click **Create**.
+
+## Configure your `periph_board` board
+
+No attributes are required for this board component.
+
+### Example Configuration
+
+```json
+{
+  "name": "local",
+  "type": "board",
+  "model": "viamlabs:board:periph",
+  "attributes": {},
+  "depends_on": []
+}
+```
 
 ## Install locally
 
 On the single board computer that will be running viam-server and the periph_board module, run these commands to install prerequisites and build:
 
-``` bash
+```bash
 sudo apt update && sudo apt upgrade -y
 sudo apt-get install git
 wget https://go.dev/dl/go1.20.5.linux-arm64.tar.gz
@@ -34,61 +48,9 @@ If you are using another shell like zsh you will need to change ~/.bashrc to ~/.
 
 Also see [examples](#viam-server-board-setup-examples) of setting up your board and installing viam-server on various SBCs.
 
-## API
+## Local install
 
-The periph_board resource fulfills the [Viam board API](https://github.com/viamrobotics/api/blob/main/proto/viam/component/board/v1/board.proto).
-
-## Viam configuration
-
-### Configure module
-
-This module should first be configured as follows:
-
-In the Viam app, go to Config->Modules and add a new module.
-Choose any `Name` you'd like, and for `Executable path` add the path to the executable you generated in the [Build step](#build) (for example, */home/username/periph_board/periph_board*).
-
-Make sure to `Save config` at the bottom of the screen.
-
-If you prefer to edit raw configuration JSON, make sure inside the main block your `modules` config looks something like this:
-
-``` json
-{
-  "modules": [
-    {
-      "executable_path": "/home/username/periph_board/periph_board",
-      "name": "periph"
-    }
-  ],
-  "components": []
-}
-```
-
-### Configure component
-
-After configuring the module, configure the component as type *board*, model *viamlabs:board:periph*.
-You may choose any `Name` you want.
-
-If you prefer to edit raw configuration JSON, make sure inside the main block your `components` config looks something like this:
-
-``` json
-{
-  "modules": [
-    {
-      "executable_path": "/home/username/periph_board/periph_board",
-      "name": "periph"
-    }
-  ],
-  "components": [
-    {
-      "name": "local",
-      "type": "board",
-      "model": "viamlabs:board:periph",
-      "attributes": {},
-      "depends_on": []
-    }
-  ]
-}
-```
+For a local install, follow the steps in [Test your module locally](https://docs.viam.com/operate/modules/support-hardware/#test-your-module-locally).
 
 ## viam-server board setup examples
 
@@ -118,7 +80,7 @@ nmcli dev wifi connect <wifi_name> password <wifi_passwd>
 
 Update the software:
 
-``` bash
+```bash
 apt update
 apt upgrade
 ```
@@ -129,7 +91,7 @@ While still in `orangepi-config`, change the hostname to your preference by goin
 
 If you want to use the I2C or SPI buses, enable i2c and spi by editing `/boot/orangepiEnv.txt`, adding the lines:
 
-``` bash
+```bash
 overlays=i2c3 spi-spidev
 param_spidev_spi_bus=1
 param_spidev_spi_cs=1
@@ -137,7 +99,7 @@ param_spidev_spi_cs=1
 
 Now install the Orange Pi gpio tool, which is useful to see the GPIO pin numbering for your board:
 
-``` bash
+```bash
 git clone https://github.com/orangepi-xunlong/wiringOP
 cd wiringOP
 sudo ./build clean
@@ -169,7 +131,7 @@ Secure the Pi:
 
 Update the software:
 
-``` bash
+```bash
 apt update
 apt upgrade
 ```
@@ -207,7 +169,7 @@ Secure the Zero:
 
 Update the software:
 
-``` bash
+```bash
 apt update
 apt upgrade
 ```
