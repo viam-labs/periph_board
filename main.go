@@ -13,7 +13,7 @@ import (
 )
 
 func mainWithArgs(ctx context.Context, args []string, logger logging.Logger) (err error) {
-	modalModule, err := module.NewModuleFromArgs(ctx, logger)
+	modalModule, err := module.NewModuleFromArgs(ctx)
 	if err != nil {
 		return err
 	}
