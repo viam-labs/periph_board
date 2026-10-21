@@ -5,9 +5,9 @@ go 1.26.0
 require (
 	github.com/pkg/errors v0.9.1
 	go.uber.org/multierr v1.11.0
-	go.viam.com/api v0.1.590
-	go.viam.com/rdk v1.12.0
-	go.viam.com/utils v0.14.0
+	go.viam.com/api v0.1.597
+	go.viam.com/rdk v1.13.0
+	go.viam.com/utils v0.14.1
 	periph.io/x/conn/v3 v3.7.0
 	periph.io/x/host/v3 v3.8.1
 )
