@@ -17,7 +17,9 @@ func mainWithArgs(ctx context.Context, args []string, logger logging.Logger) (er
 	if err != nil {
 		return err
 	}
-	modalModule.AddModelFromRegistry(ctx, board.API, periphboard.Model)
+	if err := modalModule.AddModelFromRegistry(ctx, board.API, periphboard.Model); err != nil {
+		return err
+	}
 
 	err = modalModule.Start(ctx)
 	defer modalModule.Close(ctx)
