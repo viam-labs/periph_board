@@ -4,7 +4,6 @@ go 1.26.0
 
 require (
 	github.com/pkg/errors v0.9.1
-	go.uber.org/multierr v1.11.0
 	go.viam.com/api v0.1.590
 	go.viam.com/rdk v1.12.0
 	go.viam.com/utils v0.14.0
@@ -190,6 +189,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.45.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
 	go.uber.org/goleak v1.3.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect
 	go.viam.com/test v1.2.4 // indirect
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20230525183740-e7c30c78aeb2 // indirect

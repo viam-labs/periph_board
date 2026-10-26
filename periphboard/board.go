@@ -59,9 +59,9 @@ type sysfsBoard struct {
 	resource.Named
 	resource.TriviallyReconfigurable
 
-	mu      sync.RWMutex
-	pwms    map[string]pwmSetting
-	logger  logging.Logger
+	mu     sync.RWMutex
+	pwms   map[string]pwmSetting
+	logger logging.Logger
 
 	cancelCtx               context.Context
 	cancelFunc              func()
