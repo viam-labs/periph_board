@@ -38,7 +38,7 @@ func newBoard(
 	logger logging.Logger,
 ) (board.Board, error) {
 	if _, err := host.Init(); err != nil {
-		logger.Warnf("error initializing periph host", "error", err)
+		logger.Warnw("error initializing periph host", "error", err)
 	}
 
 	cancelCtx, cancelFunc := context.WithCancel(context.Background())
