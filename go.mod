@@ -4,7 +4,7 @@ go 1.26.10
 
 require (
 	github.com/pkg/errors v0.9.1
-	go.viam.com/api v0.1.607
+	go.viam.com/api v0.1.610
 	go.viam.com/rdk v1.17.0
 	go.viam.com/utils v0.17.1
 	periph.io/x/conn/v3 v3.7.0
@@ -221,7 +221,7 @@ require (
 	google.golang.org/api v0.278.0 // indirect
 	google.golang.org/genproto v0.0.0-20260319201613-d00831a3d3e7 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260817212433-ac3dfec99bb1 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20261116203732-fd2c7689a808 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20261123191846-1e707ab9fbc2 // indirect
 	google.golang.org/grpc v1.85.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
